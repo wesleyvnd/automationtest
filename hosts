@@ -1,0 +1,6 @@
+[devices]
+#root@wesley.vandamme.snwb.howest.be
+root@203.0.113.156
+
+[devices:vars]
+#nfs_server=gallie.snwb.howest.be

@@ -1,0 +1,32 @@
+---
+#kernel adhoc:
+#ansible all -i hosts -m setup -a "filter=ansible_kernel" (meer variabelen mogelijk ipv kernel, check out setup "*"
+#Task voor hetzelfde
+- name: De dog
+  hosts: all
+  vars:
+    kernel_version1: "{{ kernel1 }}"
+
+  tasks:
+  - name: Distribution & version
+    debug: msg="{{ ansible_kernel }}"
+
+  - name: add fish shell
+    ansible.builtin.lineinfile:
+      path: /etc/shells
+      line: '/usr/local/bin/fish'
+
+  - name: Create account
+    ansible.builtin.user:
+      name: johnny
+      shell: /usr/local/bin/fish
+      password: "{{ 'Johnnyblazes1' | password_hash('sha512') }}"
+      update_password: on_create
+      group: sudo
+    register: johnny
+
+#  - name: XKCD Comic alt text in /etc/motd plaatsen
+
+
+#  - name: Installeer minesweeper
+
