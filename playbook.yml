@@ -2,31 +2,68 @@
 #kernel adhoc:
 #ansible all -i hosts -m setup -a "filter=ansible_kernel" (meer variabelen mogelijk ipv kernel, check out setup "*"
 #Task voor hetzelfde
-- name: De dog
-  hosts: all
+- hosts: all
   vars:
-    kernel_version1: "{{ kernel1 }}"
+    - xkcd_url: https://xkcd.com/info.0.json
+    - user: johnny
+    - pwd: Johnnyblazes1
+    - mine_path: /src/Minesweeper
 
   tasks:
   - name: Distribution & version
     debug: msg="{{ ansible_kernel }}"
 
+# USER
   - name: add fish shell
-    ansible.builtin.lineinfile:
-      path: /etc/shells
-      line: '/usr/local/bin/fish'
+    ansible.builtin.apt:
+      pkg:
+        - fish
 
   - name: Create account
     ansible.builtin.user:
-      name: johnny
-      shell: /usr/local/bin/fish
-      password: "{{ 'Johnnyblazes1' | password_hash('sha512') }}"
+      name: "{{ user }}"
+      shell: /usr/bin/fish
+      password: "{{ pwd | password_hash('sha512') }}"
       update_password: on_create
       group: sudo
     register: johnny
 
-#  - name: XKCD Comic alt text in /etc/motd plaatsen
+# MOTD
+  - name: XKCD Comic alt text opvragen
+    ansible.builtin.uri:
+      url: "{{ xkcd_url }}"
+      method: GET
+    register: results
 
+  - name: /etc/motd
+    ansible.builtin.copy:
+      dest: /etc/motd
+      content: |
+        "{{ results.json.alt }}"
 
-#  - name: Installeer minesweeper
+# MINESWEEPER
+  - name: add c++ compiler
+    ansible.builtin.apt:
+      pkg:
+        - g++
+        - make
 
+  - name: clone repo
+    ansible.builtin.git:
+      repo: https://github.com/unknownblueguy6/MineSweeper.git
+      dest: "{{ mine_path }}"
+
+  - name: run minesweeper
+    command: "make -C {{ mine_path }}"
+
+# ALIAS JOHNNY
+  - name: create folder
+    ansible.builtin.file:
+      path: "/home/{{ user }}/.config/fish/config.fish"
+      state: directory
+
+  - name: Create fish alias config file
+    ansible.builtin.copy:
+      dest: "/home/{{ user }}/.config/fish/config.fish"
+      content: |
+        alias mine="{{ mine_path }}/mine"
